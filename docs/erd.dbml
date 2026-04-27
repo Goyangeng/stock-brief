@@ -1,0 +1,41 @@
+// stock-brief Phase 0 ERD
+// 작성일: 2026-04-27
+// 도메인: 주식 종목 + 일일 가격
+// 시각화: https://dbdiagram.io/
+
+Project stock_brief {
+  database_type: 'PostgreSQL'
+  Note: '관심 종목 등록 + 매일 가격 자동 수집 (Yahoo Finance)'
+}
+
+Table stocks {
+  id            bigint        [pk, increment]
+  ticker        varchar(20)   [not null, unique, note: '종목 코드. 예: AAPL, 005930.KS']
+  name          varchar(100)  [not null, note: '종목 이름']
+  market        varchar(20)   [not null, note: 'NASDAQ, KOSPI, KOSDAQ, NYSE 등']
+  memo          text          [note: '사용자 메모 (장기보유 등)']
+  created_at    timestamptz   [not null, default: `now()`]
+  updated_at    timestamptz   [not null, default: `now()`]
+
+  Note: '사용자가 관심 등록한 종목 (개별 주식 + ETF)'
+}
+
+Table daily_prices {
+  id              bigint         [pk, increment]
+  stock_id        bigint         [not null, ref: > stocks.id]
+  date            date           [not null, note: '거래일']
+  opening_price   "numeric(15,2)" [not null, note: '시가']
+  closing_price   "numeric(15,2)" [not null, note: '종가']
+  high_price      "numeric(15,2)" [not null, note: '고가']
+  low_price       "numeric(15,2)" [not null, note: '저가']
+  change_rate     "numeric(7,4)"  [note: '전일 대비 변동률(%)']
+  volume          bigint         [note: '거래량']
+  created_at      timestamptz    [not null, default: `now()`]
+
+  Indexes {
+    (stock_id, date) [unique, name: 'uk_daily_prices_stock_date']
+    date             [name: 'idx_daily_prices_date']
+  }
+
+  Note: '특정 종목의 특정 날짜 가격 (Yahoo Finance 자동 수집, 불변)'
+}
