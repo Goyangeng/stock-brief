@@ -41,12 +41,22 @@ docker compose up -d
 - App: http://localhost:8080
 - DB:  localhost:5432 (user: `stockbrief`, password: `stockbrief`)
 
+## Database ERD (Phase 0)
+
+![Phase 0 ERD](docs/erd.png)
+
+- **stocks**: 사용자가 관심 등록한 종목 (개별 주식 + ETF 통합 관리)
+- **daily_prices**: 매일 자동 수집되는 일별 가격 (OHLC + 변동률 + 거래량)
+
+전체 정의: [`docs/erd.dbml`](docs/erd.dbml) (DBML 형식, [dbdiagram.io](https://dbdiagram.io)에 붙여넣어 시각화 가능)
+
 ## Roadmap
 
-- [x] **Phase 0**: 환경 셋업 (Spring Boot + PostgreSQL Docker 연결)
-- [ ] **Phase 0.5**: 종목 CRUD + Yahoo Finance 가격 자동 수집 + Spring Scheduler
-- [ ] **Phase 1**: 네이버 뉴스 API + AWS Bedrock LLM 요약
-- [ ] **Phase 2**: DART 공시 API, Slack/이메일 알림, Redis 캐시, Kafka 이벤트
+- [x] **Phase 0**: 환경 셋업 (Spring Boot + PostgreSQL Docker 연결, 코딩 컨벤션, ERD)
+- [ ] **Phase 0.5**: 종목 CRUD + Yahoo Finance 가격 자동 수집 + Spring Scheduler + AWS EC2 배포
+- [ ] **Phase 0.7**: 별도 React + Vite 프론트엔드 ([Goyangeng/stock-brief-web](https://github.com/Goyangeng/stock-brief-web))
+- [ ] **Phase 1**: 네이버 뉴스 API + AWS Bedrock LLM 요약 + Slack/이메일 알림
+- [ ] **Phase 2**: DART 공시 API, 그룹 관리, Redis 캐시, Kafka 이벤트
 
 ## Conventions
 
