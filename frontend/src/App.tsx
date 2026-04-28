@@ -3,10 +3,13 @@ import './App.css';
 import {
   createStock,
   deleteStock,
+  fetchPrices,
   fetchStocks,
+  type DailyPrice,
   type Stock,
   type StockCreateRequest,
 } from './api/stocks';
+import { PriceChart } from './components/PriceChart';
 
 function App() {
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -18,6 +21,9 @@ function App() {
     market: '',
     memo: '',
   });
+  const [selectedStockId, setSelectedStockId] = useState<number | null>(null);
+  const [prices, setPrices] = useState<DailyPrice[]>([]);
+  const [pricesLoading, setPricesLoading] = useState(false);
 
   const loadStocks = async () => {
     setLoading(true);
@@ -33,6 +39,7 @@ function App() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadStocks();
   }, []);
 
@@ -52,13 +59,36 @@ function App() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
     if (!window.confirm('정말 삭제하시겠어요?')) return;
     try {
       await deleteStock(id);
+      if (selectedStockId === id) {
+        setSelectedStockId(null);
+        setPrices([]);
+      }
       await loadStocks();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  };
+
+  const handleSelectStock = async (id: number) => {
+    if (selectedStockId === id) {
+      setSelectedStockId(null);
+      setPrices([]);
+      return;
+    }
+    setSelectedStockId(id);
+    setPricesLoading(true);
+    try {
+      const data = await fetchPrices(id);
+      setPrices(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setPricesLoading(false);
     }
   };
 
@@ -106,19 +136,29 @@ function App() {
         {error && <p className="error">에러: {error}</p>}
         {!loading && stocks.length === 0 && <p>등록된 종목이 없습니다.</p>}
         <ul className="stock-list">
-          {stocks.map((stock) => (
-            <li key={stock.id} className="stock-item">
-              <div>
-                <strong>{stock.ticker}</strong>
-                <span className="market">({stock.market})</span>
-                <span className="name">{stock.name}</span>
-                {stock.memo && <span className="memo">— {stock.memo}</span>}
-              </div>
-              <button onClick={() => handleDelete(stock.id)} className="delete-btn">
-                삭제
-              </button>
-            </li>
-          ))}
+          {stocks.map((stock) => {
+            const isSelected = selectedStockId === stock.id;
+            return (
+              <li key={stock.id} className={`stock-item ${isSelected ? 'selected' : ''}`}>
+                <div className="stock-row" onClick={() => handleSelectStock(stock.id)}>
+                  <div>
+                    <strong>{stock.ticker}</strong>
+                    <span className="market">({stock.market})</span>
+                    <span className="name">{stock.name}</span>
+                    {stock.memo && <span className="memo">— {stock.memo}</span>}
+                  </div>
+                  <button onClick={(e) => handleDelete(e, stock.id)} className="delete-btn">
+                    삭제
+                  </button>
+                </div>
+                {isSelected && (
+                  <div className="chart-container">
+                    {pricesLoading ? <p>차트 로딩 중...</p> : <PriceChart prices={prices} />}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
     </div>

@@ -17,6 +17,20 @@ export interface StockCreateRequest {
   memo?: string;
 }
 
+export interface DailyPrice {
+  id: number;
+  stockId: number;
+  ticker: string;
+  date: string; // ISO LocalDate (YYYY-MM-DD)
+  openingPrice: number;
+  closingPrice: number;
+  highPrice: number;
+  lowPrice: number;
+  changeRate: number | null;
+  volume: number | null;
+  createdAt: string; // ISO Instant
+}
+
 export async function fetchStocks(): Promise<Stock[]> {
   const response = await fetch(`${API_BASE_URL}/stocks`);
   if (!response.ok) {
@@ -44,4 +58,12 @@ export async function deleteStock(id: number): Promise<void> {
   if (!response.ok) {
     throw new Error(`Failed to delete stock: ${response.status}`);
   }
+}
+
+export async function fetchPrices(stockId: number): Promise<DailyPrice[]> {
+  const response = await fetch(`${API_BASE_URL}/stocks/${stockId}/prices`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch prices: ${response.status}`);
+  }
+  return response.json();
 }
