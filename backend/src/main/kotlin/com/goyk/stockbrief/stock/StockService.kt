@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class StockService(
     private val stockRepository: StockRepository,
+    private val dailyPriceRepository: DailyPriceRepository,
 ) {
     fun findAll(): List<Stock> {
         return stockRepository.findAll()
@@ -17,6 +18,11 @@ class StockService(
     fun findById(id: Long): Stock {
         return stockRepository.findById(id)
             .orElseThrow { NotFoundException("Stock not found: id=$id") }
+    }
+
+    fun findPricesByStockId(stockId: Long): List<DailyPrice> {
+        val stock = findById(stockId)
+        return dailyPriceRepository.findByStockOrderByDateDesc(stock)
     }
 
     @Transactional
