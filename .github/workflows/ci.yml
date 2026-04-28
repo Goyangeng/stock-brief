@@ -1,0 +1,64 @@
+name: CI
+
+on:
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
+
+# 같은 PR/브랜치에 새 push 들어오면 이전 실행 취소 (속도 + 비용 절약)
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    backend:
+        name: Backend (Gradle + ktlint)
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up JDK 21 (Temurin)
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: '21'
+
+            - name: Set up Gradle (with cache)
+              uses: gradle/actions/setup-gradle@v4
+
+            - name: ktlint check
+              run: ./gradlew ktlintCheck
+
+            - name: Assemble (skip tests for now)
+              run: ./gradlew assemble
+
+    frontend:
+        name: Frontend (Vite + ESLint)
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: frontend
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js 22
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: npm
+                  cache-dependency-path: frontend/package-lock.json
+
+            - name: Install dependencies (npm ci)
+              run: npm ci
+
+            - name: ESLint
+              run: npm run lint
+
+            - name: Build
+              run: npm run build
