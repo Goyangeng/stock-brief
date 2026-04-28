@@ -26,6 +26,11 @@ class StockController(
         return StockResponse.from(stockService.findById(id))
     }
 
+    @GetMapping("/{stockId}/prices")
+    fun findPrices(@PathVariable stockId: Long): List<DailyPriceResponse> {
+        return stockService.findPricesByStockId(stockId).map(DailyPriceResponse::from)
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody request: StockCreateRequest): StockResponse {
