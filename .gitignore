@@ -49,3 +49,6 @@ out/
 
 ### Claude Code ###
 .claude/settings.local.json
+
+### Node ###
+node_modules
