@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: stockbrief-postgres
     environment:
-      POSTGRES_DB: stockbrief
-      POSTGRES_USER: stockbrief
-      POSTGRES_PASSWORD: stockbrief
+      POSTGRES_DB: ${DB_NAME:-stockbrief}
+      POSTGRES_USER: ${DB_USER:-stockbrief}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-stockbrief}
       TZ: Asia/Seoul
     ports:
       - "5432:5432"
@@ -13,10 +13,34 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U stockbrief -d stockbrief"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-stockbrief} -d ${DB_NAME:-stockbrief}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # backend는 profile "app" 활성화 시에만 실행
+  # 로컬 개발(IntelliJ): docker compose up -d           → postgres만
+  # 풀 실행(운영 시뮬레이션): docker compose --profile app up -d → 둘 다
+  backend:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stockbrief-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-stockbrief}
+      DB_USER: ${DB_USER:-stockbrief}
+      DB_PASSWORD: ${DB_PASSWORD:-stockbrief}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY}
+      TZ: Asia/Seoul
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 
 volumes:
   postgres_data:
