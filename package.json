@@ -1,0 +1,35 @@
+{
+  "name": "stock-brief",
+  "version": "1.0.0",
+  "description": "매일 아침 받아보는 주식 일일 브리핑 시스템. 모던 백엔드 학습 + 이직 포트폴리오 목적의 사이드 프로젝트.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Goyangeng/stock-brief.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Goyangeng/stock-brief/issues"
+  },
+  "homepage": "https://github.com/Goyangeng/stock-brief#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.2",
+    "@commitlint/config-conventional": "^20.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3"
+  },
+  "lint-staged": {
+    "frontend/**/*.{ts,tsx,js,jsx,json,css,html,md}": "prettier --write"
+  }
+}
