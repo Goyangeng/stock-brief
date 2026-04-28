@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import {
   createStock,
@@ -9,7 +9,10 @@ import {
   type Stock,
   type StockCreateRequest,
 } from './api/stocks';
-import { PriceChart } from './components/PriceChart';
+import { CandlestickChart } from './components/CandlestickChart';
+import { MarketIndicesBar } from './components/MarketIndicesBar';
+
+const PAGE_SIZE = 20;
 
 function App() {
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -24,6 +27,8 @@ function App() {
   const [selectedStockId, setSelectedStockId] = useState<number | null>(null);
   const [prices, setPrices] = useState<DailyPrice[]>([]);
   const [pricesLoading, setPricesLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
   const loadStocks = async () => {
     setLoading(true);
@@ -42,6 +47,22 @@ function App() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadStocks();
   }, []);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return stocks;
+    return stocks.filter(
+      (s) =>
+        s.ticker.toLowerCase().includes(q) ||
+        s.name.toLowerCase().includes(q) ||
+        s.market.toLowerCase().includes(q),
+    );
+  }, [stocks, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * PAGE_SIZE;
+  const paged = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +117,8 @@ function App() {
     <div className="app">
       <h1>📊 stock-brief</h1>
 
+      <MarketIndicesBar />
+
       <section className="form-section">
         <h2>관심 종목 등록</h2>
         <form onSubmit={handleSubmit}>
@@ -131,12 +154,24 @@ function App() {
       </section>
 
       <section className="list-section">
-        <h2>등록된 종목 ({stocks.length}개)</h2>
+        <div className="list-header">
+          <h2>등록된 종목 ({filtered.length}개)</h2>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="검색 (ticker/name/market)"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
         {loading && <p>로딩 중...</p>}
         {error && <p className="error">에러: {error}</p>}
-        {!loading && stocks.length === 0 && <p>등록된 종목이 없습니다.</p>}
+        {!loading && filtered.length === 0 && <p>일치하는 종목이 없습니다.</p>}
         <ul className="stock-list">
-          {stocks.map((stock) => {
+          {paged.map((stock) => {
             const isSelected = selectedStockId === stock.id;
             return (
               <li key={stock.id} className={`stock-item ${isSelected ? 'selected' : ''}`}>
@@ -153,13 +188,29 @@ function App() {
                 </div>
                 {isSelected && (
                   <div className="chart-container">
-                    {pricesLoading ? <p>차트 로딩 중...</p> : <PriceChart prices={prices} />}
+                    {pricesLoading ? <p>차트 로딩 중...</p> : <CandlestickChart prices={prices} />}
                   </div>
                 )}
               </li>
             );
           })}
         </ul>
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
+              이전
+            </button>
+            <span>
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              다음
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );
