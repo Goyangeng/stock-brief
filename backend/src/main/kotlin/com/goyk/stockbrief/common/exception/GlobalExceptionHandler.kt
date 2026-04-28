@@ -13,10 +13,7 @@ class GlobalExceptionHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(NotFoundException::class)
-    fun handleNotFound(
-        e: NotFoundException,
-        request: HttpServletRequest,
-    ): ResponseEntity<ErrorResponse> {
+    fun handleNotFound(e: NotFoundException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
             ErrorResponse(
                 code = "NOT_FOUND",
@@ -27,10 +24,7 @@ class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConflictException::class)
-    fun handleConflict(
-        e: ConflictException,
-        request: HttpServletRequest,
-    ): ResponseEntity<ErrorResponse> {
+    fun handleConflict(e: ConflictException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
             ErrorResponse(
                 code = "CONFLICT",
@@ -63,10 +57,7 @@ class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleGeneric(
-        e: Exception,
-        request: HttpServletRequest,
-    ): ResponseEntity<ErrorResponse> {
+    fun handleGeneric(e: Exception, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         log.error("Unhandled exception: ${e.message}", e)
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
             ErrorResponse(
